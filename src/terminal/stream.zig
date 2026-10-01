@@ -126,6 +126,7 @@ pub const Action = union(Key) {
     kitty_color_report: kitty.color.OSC,
     color_operation: ColorOperation,
     semantic_prompt: SemanticPrompt,
+    window_icon: WindowTitle,
 
     pub const Key = lib.Enum(
         lib_target,
@@ -223,6 +224,7 @@ pub const Action = union(Key) {
             "kitty_color_report",
             "color_operation",
             "semantic_prompt",
+            "window_icon",
         },
     );
 
@@ -1981,7 +1983,15 @@ pub fn Stream(comptime Handler: type) type {
 
                 .change_window_icon => |icon| {
                     @branchHint(.likely);
-                    log.info("OSC 1 (change icon) received and ignored icon={s}", .{icon});
+                    if (!std.unicode.utf8ValidateSlice(icon)) {
+                        @branchHint(.unlikely);
+                        log.warn("change icon request: invalid utf-8, ignoring request", .{});
+                        return;
+                    }
+
+                    // GhosttyHL: OSC 1 (the icon name) sets the label shown
+                    // in the banner above this surface.
+                    try self.handler.vt(.window_icon, .{ .title = icon });
                 },
 
                 .clipboard_contents => |clip| {

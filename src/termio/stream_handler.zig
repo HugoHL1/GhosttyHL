@@ -315,6 +315,7 @@ pub const StreamHandler = struct {
             .active_status_display => self.terminal.status_display = value,
             .decaln => try self.decaln(),
             .window_title => try self.windowTitle(value.title),
+            .window_icon => self.windowIcon(value.title),
             .report_pwd => try self.reportPwd(value.url),
             .show_desktop_notification => try self.showDesktopNotification(value.title, value.body),
             .progress_report => self.progressReport(value),
@@ -992,6 +993,20 @@ pub const StreamHandler = struct {
 
     //-------------------------------------------------------------------------
     // OSC
+
+    /// GhosttyHL: OSC 1 (the icon name) becomes the surface label, shown in
+    /// a banner above the surface. An empty name removes the banner.
+    fn windowIcon(self: *StreamHandler, label: []const u8) void {
+        var buf: [256]u8 = undefined;
+
+        // A label longer than the buffer is cut on a UTF-8 boundary.
+        var len = @min(label.len, buf.len - 1);
+        while (len > 0 and len < label.len and (label[len] & 0xC0) == 0x80) len -= 1;
+
+        @memcpy(buf[0..len], label[0..len]);
+        buf[len] = 0;
+        self.surfaceMessageWriter(.{ .set_label = buf });
+    }
 
     fn windowTitle(self: *StreamHandler, title: []const u8) !void {
         var buf: [256]u8 = undefined;

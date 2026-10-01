@@ -666,6 +666,8 @@ extension Ghostty {
                 return false
             case GHOSTTY_ACTION_COPY_TITLE_TO_CLIPBOARD:
                 return copyTitleToClipboard(app, target: target)
+            case GHOSTTY_ACTION_SET_SURFACE_LABEL:
+                setSurfaceLabel(app, target: target, v: action.action.set_surface_label)
             default:
                 Ghostty.logger.warning("unknown action action=\(action.tag.rawValue)")
                 return false
@@ -1603,6 +1605,19 @@ extension Ghostty {
             default:
                 assertionFailure()
             }
+        }
+
+        private static func setSurfaceLabel(
+            _ app: ghostty_app_t,
+            target: ghostty_target_s,
+            v: ghostty_action_set_title_s) {
+            #if os(macOS)
+            guard target.tag == GHOSTTY_TARGET_SURFACE else { return }
+            guard let surface = target.target.surface else { return }
+            guard let surfaceView = self.surfaceView(from: surface) else { return }
+            guard let label = String(cString: v.title!, encoding: .utf8) else { return }
+            surfaceView.label = label.isEmpty ? nil : label
+            #endif
         }
 
         private static func setTabTitle(

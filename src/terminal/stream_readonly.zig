@@ -183,6 +183,7 @@ pub const Handler = struct {
             .device_status,
             .kitty_keyboard_query,
             .window_title,
+            .window_icon,
             .report_pwd,
             .show_desktop_notification,
             .progress_report,

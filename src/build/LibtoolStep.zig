@@ -31,7 +31,9 @@ pub fn create(b: *std.Build, opts: Options) *LibtoolStep {
     const self = b.allocator.create(LibtoolStep) catch @panic("OOM");
 
     const run_step = RunStep.create(b, b.fmt("libtool {s}", .{opts.name}));
-    run_step.addArgs(&.{ "libtool", "-static", "-o" });
+    // GhosttyHL: realign Zig archive members before libtool (Xcode 27).
+    run_step.addArgs(&.{"python3"});
+    run_step.addFileArg(b.path("src/build/combine_static_libs.py"));
     const output = run_step.addOutputFileArg(opts.out_name);
     for (opts.sources) |source| run_step.addFileArg(source);
 

@@ -63,9 +63,23 @@ extension Ghostty {
         }
 
         var body: some View {
+            #if canImport(AppKit)
+            VStack(spacing: 0) {
+                if let label = surfaceView.label {
+                    SurfaceLabelBanner(label: label, focused: isFocusedSurface)
+                }
+
+                surface
+            }
+            #else
+            surface
+            #endif
+        }
+
+        private var surface: some View {
             let center = NotificationCenter.default
 
-            ZStack {
+            return ZStack {
                 // We use a GeometryReader to get the frame bounds so that our metal surface
                 // is up to date. See TerminalSurfaceView for why we don't use the NSView
                 // resize callback.
